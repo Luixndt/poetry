@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Poemario</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cormorant+Garamond:ital,wght@400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: '#050505',
+                        gold: '#d4b055', 
+                        'gold-dark': '#8f7230',
+                        ink: '#0a0a0a', 
+                        parchment: '#c9bb9e',
+                        leather: {
+                            maroon: '#2b0f0f',
+                            navy: '#0f142b',
+                            forest: '#0f2b15',
+                            brown: '#3b2414'
+                        }
+                    },
+                    fontFamily: {
+                        header: ['Cinzel', 'serif'],
+                        body: ['Cormorant Garamond', 'serif'],
+                        hand: ['Great Vibes', 'cursive'],
+                    },
+                    boxShadow: {
+                        'book-spine': 'inset 2px 0 5px rgba(255,255,255,0.05), inset -2px 0 10px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.8)',
+                    },
+                    animation: {
+                        'nebula-pulse': 'nebulaPulse 6s infinite alternate ease-in-out',
+                        'float': 'float 6s infinite ease-in-out',
+                    },
+                    keyframes: {
+                        nebulaPulse: {
+                            '0%': { opacity: '0.3', transform: 'scaleY(1)' },
+                            '100%': { opacity: '0.6', transform: 'scaleY(1.1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-image: url('./imagenes/otoño.jpg');
+        }
+
+        body {
+            background-color: #050505;
+            background-image: radial-gradient(circle at center, rgba(10,10,10,0.4) 0%, rgba(5,5,5,0.85) 100%), var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .leather-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.3'/%3E%3C/svg%3E");
+        }
+        
+        .old-newspaper {
+            background-color: #eaddcf; 
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+            box-shadow: inset 0 0 100px rgba(80, 50, 20, 0.15);
+        }
+
+        .newspaper-text {
+            color: #0a0a0a;
+            text-shadow: 0 0 1px rgba(0,0,0,0.1); 
+        }
+
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 4rem;
+            line-height: 0.8;
+            padding-top: 8px;
+            padding-right: 8px;
+            padding-left: 2px;
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            color: #111;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+        }
+
+        .nebula-glow {
+            position: fixed;
+            bottom: -50px;
+            left: 0;
+            width: 100%;
+            height: 35vh;
+            background: linear-gradient(to top, 
+                rgba(30, 10, 60, 0.5) 0%, 
+                rgba(10, 20, 50, 0.3) 40%, 
+                transparent 100%);
+            z-index: 1;
+            filter: blur(50px);
+            pointer-events: none;
+        }
+
+        .glowing-gold-text {
+            color: #d4b055;
+            text-shadow: 
+                0 2px 5px rgba(0,0,0,0.8),
+                0 0 15px rgba(212, 176, 85, 0.2),
+                0 0 25px rgba(212, 176, 85, 0.1);
+        }
+
+        .spine-title {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            white-space: nowrap;
+        }
+
+        .spine-ridge {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(255,255,255,0.05), rgba(0,0,0,0.6));
+            box-shadow: 0 1px 3px rgba(0,0,0,0.9);
+        }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden min-h-screen text-gray-400 font-body">
+
+    <div class="nebula-glow animate-nebula-pulse"></div>
+
+    <div x-data="libraryApp()" class="min-h-screen flex flex-col relative z-20">
+
+        <nav x-show="currentView !== 'home'" 
+             class="fixed top-0 w-full z-50 bg-gradient-to-b from-black via-black/80 to-transparent p-4 pb-8 flex justify-between items-center transition-all duration-500 pointer-events-none">
+            <button @click="goHome()" class="text-gold hover:text-white transition-colors flex items-center gap-2 group pointer-events-auto bg-black/50 px-3 py-1 rounded-sm backdrop-blur-sm border border-gold/20">
+                <span class="text-xl font-serif">↩</span>
+                <span class="font-header text-[10px] tracking-widest uppercase mt-1">Cerrar Archivo</span>
+            </button>
+        </nav>
+
+        <main class="flex-grow flex flex-col w-full min-h-screen">
+            
+            <section x-show="currentView === 'home'" 
+                     x-transition:enter="transition ease-out duration-1000"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     class="flex-grow flex flex-col md:flex-row items-center justify-center gap-12 md:gap-32 py-16 px-6 relative z-10">
+                
+                <div @click="openSection('reflejos')" 
+                     class="relative w-[260px] md:w-[320px] aspect-[2/3] cursor-pointer group perspective-1000 transition-transform hover:-translate-y-3 duration-500">
+                    <div class="absolute inset-0 bg-[#0c1218] leather-texture rounded-r-lg border-l-4 border-black/80 shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden flex flex-col p-6 group-hover:shadow-[0_25px_60px_rgba(100,100,255,0.1)] transition-shadow duration-500">
+                        <div class="absolute top-0 bottom-0 left-0 w-6 bg-gradient-to-r from-white/5 to-transparent"></div>
+                        <div class="absolute inset-4 border border-gold/30 rounded-sm"></div>
+                        <div class="h-full flex flex-col items-center justify-center z-10 text-center">
+                            <h2 class="font-header text-2xl glowing-gold-text tracking-[0.1em] mb-2 leading-tight uppercase">Reflejos de<br>una Grieta</h2>
+                            <div class="w-16 h-[1px] bg-gold/60 my-4 shadow-[0_0_5px_rgba(212,176,85,0.4)]"></div>
+                            <span class="text-gold/50 text-[10px] tracking-[0.4em] uppercase font-bold">Colección I</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div @click="openSection('cenizas')" 
+                     class="relative w-[260px] md:w-[320px] aspect-[2/3] cursor-pointer group perspective-1000 transition-transform hover:-translate-y-3 duration-500">
+                    <div class="absolute inset-0 bg-[#120505] leather-texture rounded-r-lg border-l-4 border-black/80 shadow-[0_20px_50px_rgba(0,0,0,0.95)] overflow-hidden flex flex-col p-6 group-hover:shadow-[0_25px_60px_rgba(255,100,100,0.05)] transition-shadow duration-500">
+                        <div class="absolute top-0 bottom-0 left-0 w-6 bg-gradient-to-r from-white/5 to-transparent"></div>
+                        <div class="absolute inset-4 border border-gold/20 rounded-sm"></div>
+                        <div class="h-full flex flex-col items-center justify-center z-10 p-4 text-center">
+                            <h2 class="font-header text-3xl glowing-gold-text tracking-[0.2em] mb-2 opacity-90 uppercase">Cenizas</h2>
+                            <div class="w-16 h-[1px] bg-gold/60 my-4 shadow-[0_0_5px_rgba(212,176,85,0.4)]"></div>
+                            <span class="text-gold/50 text-[10px] tracking-[0.4em] uppercase font-bold">Colección II</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section x-show="currentView === 'glossary'" 
+                     class="w-full max-w-6xl mx-auto pt-24 px-4 pb-20 flex flex-col items-center justify-center min-h-[80vh] z-10">
+                <h1 class="font-header text-3xl glowing-gold-text mb-20 tracking-[0.3em] text-center opacity-90 uppercase" x-text="sectionTitle"></h1>
+                
+                <div class="flex flex-wrap justify-center items-center gap-6 md:gap-12 w-full">
+                    <template x-for="(cat, index) in currentCategories" :key="cat.id">
+                        <div @click="selectCategory(cat)" 
+                             class="group relative cursor-pointer hover:z-20 animate-float"
+                             :style="`animation-delay: ${index * 0.5}s`"
+                             :class="cat.widthClass">
+                            <div class="h-[300px] md:h-[380px] w-full rounded-sm shadow-book-spine flex flex-col items-center justify-between py-6 overflow-hidden border-l border-white/5 transition-all duration-300 group-hover:scale-105 group-hover:brightness-125 brightness-75"
+                                 :class="cat.colorClass">
+                                <div class="w-full h-2 spine-ridge opacity-40"></div>
+                                <div class="w-full h-[1px] bg-gold/20 mt-1"></div>
+                                
+                                <h3 class="font-header text-lg md:text-xl text-gold spine-title tracking-widest drop-shadow-md group-hover:text-white transition-colors" x-text="cat.name"></h3>
+                                
+                                <div class="flex flex-col items-center gap-1 opacity-60">
+                                    <span class="text-[10px] font-header text-gold/50" x-text="cat.initial"></span>
+                                    <div class="w-full h-[1px] bg-gold/20 mb-1"></div>
+                                    <div class="w-full h-2 spine-ridge opacity-40"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <p class="mt-20 text-xs text-blue-200/20 font-header tracking-widest uppercase"></p>
+            </section>
+
+            <section x-show="currentView === 'reader'" 
+                     class="fixed inset-0 z-40 bg-black overflow-hidden">
+                
+                <div x-show="showPage"
+                     x-transition:enter="transition ease-out duration-700 transform"
+                     x-transition:enter-start="translate-x-full"
+                     x-transition:enter-end="translate-x-0"
+                     x-transition:leave="transition ease-in duration-300 transform"
+                     x-transition:leave-start="translate-x-0 opacity-100"
+                     x-transition:leave-end="-translate-x-12 opacity-0"
+                     class="w-full h-full old-newspaper overflow-y-auto overflow-x-hidden relative flex flex-col items-center py-24 px-6 md:px-12">
+                    
+                    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-40">
+                        <div class="absolute top-[-100px] left-[-50px] w-96 h-96 bg-[#4a2e1b] rounded-full mix-blend-multiply filter blur-[90px]"></div>
+                        <div class="absolute bottom-0 right-0 w-80 h-80 bg-[#111] rounded-full mix-blend-multiply filter blur-[80px] opacity-20"></div>
+                    </div>
+
+                    <div class="relative z-10 w-full max-w-3xl flex flex-col min-h-full justify-between">
+                        
+                        <div>
+                            <div class="flex justify-between items-end border-b-2 border-[#0a0a0a] pb-3 mb-12 opacity-80">
+                                <span class="font-header text-[10px] tracking-[0.2em] uppercase font-bold newspaper-text" x-text="activeContent.category"></span>
+                                <span class="font-header text-[11px] font-black tracking-widest newspaper-text">ARCHIVO N° <span x-text="activeContent.id"></span></span>
+                            </div>
+
+                            <div class="flex justify-center items-center mb-10 min-h-[4rem]">
+                                <h1 class="font-header text-3xl md:text-5xl text-center font-black newspaper-text leading-tight uppercase" x-text="typewriterTitle"></h1>
+                            </div>
+
+                            <article class="prose prose-lg mx-auto text-center font-body newspaper-text leading-loose mb-16 font-medium text-xl drop-cap">
+                               <div x-html="activeContent.body" class="whitespace-pre-line text-left md:text-center inline-block"></div>
+                            </article>
+                        </div>
+
+                        <div class="mt-auto pt-8">
+                            <div class="flex justify-center mb-8 opacity-60">
+                                <div class="w-1/4 h-[1px] bg-[#0a0a0a]"></div>
+                                <div class="w-2 h-2 rotate-45 bg-[#0a0a0a] mx-2 mt-[-3px]"></div>
+                                <div class="w-1/4 h-[1px] bg-[#0a0a0a]"></div>
+                            </div>
+
+                            <div class="flex justify-between items-center opacity-90 pb-8">
+                                <button @click="changeContent(-1)" 
+                                        :class="{ 'opacity-0 pointer-events-none': !hasPrev, 'hover:-translate-x-1': hasPrev }"
+                                        class="newspaper-text hover:text-red-900 transition-colors font-bold">
+                                    <span class="font-header text-xs md:text-sm uppercase tracking-widest">← Anterior</span>
+                                </button>
+
+                                <div class="font-hand text-3xl newspaper-text opacity-90">L.</div>
+
+                                <button @click="changeContent(1)" 
+                                        :class="{ 'opacity-0 pointer-events-none': !hasNext, 'hover:translate-x-1': hasNext }"
+                                        class="newspaper-text hover:text-red-900 transition-colors font-bold">
+                                    <span class="font-header text-xs md:text-sm uppercase tracking-widest">Siguiente →</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        function libraryApp() {
+            return {
+                currentView: 'home',
+                activeContent: {},
+                showPage: false,
+                sectionType: 'reflejos', 
+                typewriterTitle: '',
+                typingInterval: null,
+                
+                allCategories: [
+                    { id: 1, name: 'El Reflejo', initial: 'I', type: 'reflejos', colorClass: 'bg-[#0f142b] leather-texture', widthClass: 'w-14 md:w-20' },
+                    { id: 2, name: 'La Página', initial: 'II', type: 'reflejos', colorClass: 'bg-[#1a1a1a] leather-texture', widthClass: 'w-16 md:w-24' },
+                    { id: 3, name: 'Conocido', initial: 'III', type: 'reflejos', colorClass: 'bg-[#2b0f0f] leather-texture', widthClass: 'w-14 md:w-20' },
+                    { id: 7, name: 'Mírame', initial: 'IV', type: 'reflejos', colorClass: 'bg-[#0f161a] leather-texture', widthClass: 'w-16 md:w-22' },
+                    { id: 4, name: 'El Trago', initial: 'I', type: 'cenizas', colorClass: 'bg-[#2a0a0a] leather-texture', widthClass: 'w-16 md:w-24' },
+                    { id: 5, name: 'Crónica', initial: 'II', type: 'cenizas', colorClass: 'bg-[#1e1e24] leather-texture', widthClass: 'w-14 md:w-20' },
+                    { id: 6, name: 'Canario', initial: 'III', type: 'cenizas', colorClass: 'bg-[#2b1f0f] leather-texture', widthClass: 'w-16 md:w-22' }
+                ],
+
+                contentDB: [
+                    { 
+                        id: 1, 
+                        title: 'El reflejo roto', 
+                        category: 'Reflejos de una grieta', 
+                        body: 'Eres un reflejo roto de otra vida que aún\nmantengo en mi habitación.\n\nFroto hasta el cansancio el polvo que\nacumulas por mi terquedad,\ncon la ciega esperanza de limpiar la\nimagen de un futuro que no será.\n\nMás solo encuentro óxido y sangre entre\nmis palmas abiertas,\nmás no me importa, limpiaré el polvo de\nnuestras grietas,\ny tragaré los vidrios que me has dejado.\n\nHasta que mi sangre purifique el pasado,\nhasta que mi sangre se funda con tu\nreflejo, hecho pedazos.' 
+                    },
+                    { 
+                        id: 2, 
+                        title: 'La página que ya pasó', 
+                        category: 'Reflejos de una grieta', 
+                        body: 'Soy una página que ya pasó,\nun libro que se cerró.\nSoy el fantasma del ayer,\nlo que vivo ya fue,\ny lo que viviré ya murió.\nYa estoy muerto, pero aún no lo sé.\n\nSoy una hoja de papel,\ncon fecha y firma,\ncon inicio y final,\nun registro en el municipio estatal.\n\nSoy la nostalgia que se convierte\nen silencio.\nSoy una carta olvidada,\nun poema encontrado,\nun hueco en las ramas del árbol.\nSoy, pero ya no existiré.\n\nYa no lo soy,\nya lo fui.' 
+                    },
+                    { 
+                        id: 3, 
+                        title: 'Un conocido', 
+                        category: 'Reflejos de una grieta', 
+                        body: 'Soy tu mejor amigo, yo siempre estaré\ncontigo.\nTe vi nacer, te vi crecer y te veré\ndesvanecer.\nEn tus penas me presenté, tus éxitos\npresencié, siempre a plena vista, nunca me\nperderás la pista.\n\nNo tienes poder para mentirme.\nAunque quisieras no puedes excluirme.\nConozco tus más íntimos secretos,\ntus pecados, tus arrepentimientos\ndiscretos.\nEscuché las palabras que nunca\nterminaste,\nel llanto del que jamás hablaste,\nel grito que jamás soltaste.\n\nDe pies a cabeza.\nDe tus alegrías a tus tristezas.\nDel primer llanto al último suspiro.\nTe conozco.\nTe miro.\nTe entiendo.\n\n¿Me sientes como una carga?\nPues te tengo una verdad muy amarga.\nQuerido amigo te cuento, no puedo\ndesaparecerme, mejor intenta conocerme,\nasí lograrías un poco conmoverme.\n\nNo tapes más los espejos.\nNo me mientas, no escondas tus\ncomplejos.\nY mírame directamente, yo soy tu reflejo.' 
+                    },
+                    {
+                        id: 7,
+                        title: 'No preguntes, mírame',
+                        category: 'Reflejos de una grieta',
+                        body: 'No preguntes qué siento,\nlas palabras no son sentencias\ny las acciones caducan.\n¿Pero te digo un secreto? Existe algo infalsificable.\nDetente.\nSostén mi mirada un momento,\nTan solo un momento,\ny dime qué miras dentro.\n¿Ves fuego o cenizas?\n¿El principio de una historia o un final ya escrito?\n¿Ves una chispa de pasión\no solo un hueco?\nNo necesitas más nada.\nLa mirada es el único espejo\nque no he podido romper todavía.'
+                    },
+                    { 
+                        id: 4, 
+                        title: 'El trago', 
+                        category: 'Cenizas', 
+                        body: 'Miserable sorbo de amargura,\nMiserable instante en que te bebí,\nPero he de confesar que me sentí tan bien\nal degustar de ti,\nTanto te entregué yo de mí\nTanto te quedaste de mí.\n\nLos tragos esconden mis recuerdos, tal\nvez así olvido que a tus ojos ya no puedo\nverlos.\nRecuerdo entre melancolías los vestigios\ndel ayer,\nRecuerdo las promesas que en el frío\nquedaron tras beber.\n\n¿Quién diría que aquella noche de invierno\nprobé el trago más amargo?\nNo era whisky.\nNo era vodka.\nNi tequila.\nFué tu voz en este hotel.' 
+                    },
+                    { 
+                        id: 5, 
+                        title: 'Crónica de un pecado', 
+                        category: 'Cenizas', 
+                        body: 'Cuatro alas, dos almas atadas\nHijos del pecado, les llaman mundanos\nAmantes de fuego, deseos profanos\nCuatro alas, dos almas entrelazadas\n\nCorazones llameantes desenfrenados, del\nfavor eterno alejados\nAceptaron las tentaciones, entregándose a\nsus más oscuras pasiones.\n\nCuatro alas, dos almas unificadas\nExpulsados del Edén, despojados de la\ngracia, enviados al lago de fuego.\nCuatro alas desterradas\n\nBendecidos pero sentenciados\nGuiados sean los iluminados\nAl paraíso de los condenados.' 
+                    },
+                    {
+                        id: 6,
+                        title: 'Canario',
+                        category: 'Cenizas',
+                        body: 'Cual canario de voz cortada,\nsu esperanza de vuelo, arrebatada.\nEspíritu en cuerpo destrozado,\nsu único canto, la melodía del sosegado.\n\nTriste canción que lo ha esclavizado,\nesclavo de su propio lamento.\nSordo al tiempo que construyó\npoco a poco su tormento.\n\nSus alas sangrantes miraba,\nmás con voz divagante cantaba.\nA pesar del dolor punzante cantaba,\nnoches gélidas, días de infierno, cantaba.\nSi la muerte alguna vez acechaba,\nsolo cantaba.\n\nArrebatado para cantar,\njamás volvería a volar.\nTriste fue que alguna vez\na su cárcel llamó hogar.'
+                    }
+                ],
+
+                get currentCategories() {
+                    return this.allCategories.filter(c => c.type === this.sectionType);
+                },
+
+                get sectionTitle() {
+                    return this.sectionType === 'reflejos' ? 'Reflejos de una Grieta' : 'Cenizas';
+                },
+
+                get currentList() {
+                    return this.contentDB.filter(c => this.currentCategories.some(cat => cat.id === c.id));
+                },
+
+                get currentIndex() {
+                    return this.currentList.findIndex(c => c.id === this.activeContent.id);
+                },
+
+                get hasNext() { 
+                    return this.currentIndex < this.currentList.length - 1;
+                },
+                
+                get hasPrev() { 
+                    return this.currentIndex > 0; 
+                },
+
+                goHome() {
+                    this.showPage = false;
+                    setTimeout(() => {
+                        this.currentView = 'home';
+                        window.scrollTo({top: 0, behavior: 'smooth'});
+                    }, 300);
+                },
+
+                openSection(type) {
+                    this.sectionType = type;
+                    this.currentView = 'glossary';
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+                },
+
+                selectCategory(category) {
+                    let content = this.contentDB.find(c => c.id === category.id);
+                    if(content) {
+                        this.activeContent = content;
+                        this.currentView = 'reader';
+                        
+                        setTimeout(() => {
+                            this.showPage = true;
+                            this.startTypewriter(content.title);
+                        }, 50);
+                    }
+                },
+
+                startTypewriter(text) {
+                    this.typewriterTitle = '';
+                    clearInterval(this.typingInterval);
+                    let i = 0;
+                    this.typingInterval = setInterval(() => {
+                        this.typewriterTitle += text.charAt(i);
+                        i++;
+                        if (i >= text.length) clearInterval(this.typingInterval);
+                    }, 60); 
+                },
+
+                changeContent(direction) {
+                    let newIndex = this.currentIndex + direction;
+                    if (newIndex >= 0 && newIndex < this.currentList.length) {
+                        this.showPage = false;
+                        
+                        setTimeout(() => {
+                            this.activeContent = this.currentList[newIndex];
+                            this.startTypewriter(this.activeContent.title);
+                            this.showPage = true; 
+                            
+                            let readerContainer = document.querySelector('.old-newspaper.overflow-y-auto');
+                            if(readerContainer) readerContainer.scrollTop = 0;
+                        }, 350); 
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
